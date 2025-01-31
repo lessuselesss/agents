@@ -3,7 +3,7 @@ import { generateText, generateObject } from "ai";
 import { z } from "zod";
 
 export default async function generateMarketingCopy(input: string) {
-  const model = openai("gpt-4o-mini");
+  const model = openai("gpt-4o");
 
   // First step: Generate marketing copy
   const { text: copy } = await generateText({

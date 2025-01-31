@@ -1,5 +1,5 @@
 {
-  "name": "@cloudflare/agents-anthropic-patterns",
+  "name": "@cloudflare/agents-anthropic-patterns-anthropic",
   "version": "0.0.0",
   "scripts": {
     "build": "esbuild src/client.tsx --bundle --minify --outdir=public/dist --sourcemap --platform=browser --format=esm",

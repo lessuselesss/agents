@@ -6,13 +6,13 @@ import {
   Connection,
   WSMessage,
 } from "partyserver";
-import { createOpenAI } from "@ai-sdk/openai";
+import { createAnthropic } from '@ai-sdk/anthropic';
 import { generateText, generateObject } from "ai";
 import { z } from "zod";
 
-const openai = createOpenAI({
+const anthropic = createAnthropic({
   // @ts-ignore we are replacing this at build time
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
 type Env = {
@@ -90,6 +90,12 @@ function createAgent(
         this.setState({ isRunning: false, output: JSON.stringify(error) });
       }
     }
+
+    broadcast(message: string) {
+      this.connections.forEach(connection => {
+        connection.send(message);
+      });
+    }
   };
 }
 
@@ -103,7 +109,7 @@ export const Sequential = createAgent(
   async (props: { input: string }, toast: (message: string) => void) => {
     // This agent uses a prompt chaining workflow, ideal for tasks that can be decomposed into fixed subtasks.
     // It trades off latency for higher accuracy by making each LLM call an easier task.
-    const model = openai("gpt-4o");
+    const model = anthropic("claude-3-sonnet-20240229");
 
     // First step: Generate marketing copy
     const { text: copy } = await generateText({
@@ -162,7 +168,7 @@ export const Routing = createAgent(
   async (props: { query: string }, toast: (message: string) => void) => {
     // This agent uses a routing workflow, which classifies input and directs it to specialized follow-up tasks.
     // It is effective for complex tasks with distinct categories that are better handled separately.
-    const model = openai("gpt-4o");
+    const model = anthropic("claude-3-sonnet-20240229");
 
     // First step: Classify the query type
     const { object: classification } = await generateObject({
@@ -186,8 +192,8 @@ export const Routing = createAgent(
     const { text: response } = await generateText({
       model:
         classification.complexity === "simple"
-          ? openai("gpt-4o-mini")
-          : openai("o1-mini"),
+          ? anthropic("claude-3-sonnet-20240229")
+          : anthropic("claude-3-sonnet"),
       system: {
         general:
           "You are an expert customer service agent handling general inquiries.",
@@ -209,7 +215,7 @@ export const Parallel = createAgent(
   async (props: { code: string }, toast: (message: string) => void) => {
     // This agent uses a parallelization workflow, effective for tasks that can be divided into independent subtasks.
     // It allows for speed and multiple perspectives, improving confidence in results.
-    const model = openai("gpt-4o");
+    const model = anthropic("claude-3-sonnet-20240229");
 
     // Run parallel reviews
     const [securityReview, performanceReview, maintainabilityReview] =
@@ -286,7 +292,7 @@ export const Orchestrator = createAgent(
     // This agent uses an orchestrator-workers workflow, suitable for complex tasks where subtasks aren't pre-defined.
     // It dynamically breaks down tasks and delegates them to worker LLMs, synthesizing their results.
     const { object: implementationPlan } = await generateObject({
-      model: openai("o1"),
+      model: anthropic("claude-3-sonnet-20240229"),
       schema: z.object({
         files: z.array(
           z.object({
@@ -317,7 +323,7 @@ export const Orchestrator = createAgent(
         }[file.changeType];
 
         const { object: change } = await generateObject({
-          model: openai("gpt-4o"),
+          model: anthropic("claude-3-sonnet-20240229"),
           schema: z.object({
             explanation: z.string(),
             code: z.string(),
@@ -352,7 +358,7 @@ export const Evaluator = createAgent(
     props: { text: string; targetLanguage: string },
     toast: (message: string) => void
   ) => {
-    const model = openai("gpt-4o");
+    const model = anthropic("claude-3-sonnet-20240229");
 
     let currentTranslation = "";
     let iterations = 0;
@@ -360,7 +366,7 @@ export const Evaluator = createAgent(
 
     // Initial translation
     const { text: translation } = await generateText({
-      model: openai("gpt-4o-mini"), // use small model for first attempt
+      model: anthropic("claude-3-sonnet-20240229"),
       system: "You are an expert literary translator.",
       prompt: `Translate this text to ${props.targetLanguage}, preserving tone and cultural nuances:
       ${props.text}`,
@@ -410,7 +416,7 @@ export const Evaluator = createAgent(
 
       // Generate improved translation based on feedback
       const { text: improvedTranslation } = await generateText({
-        model: openai("gpt-4o"), // use a larger model
+        model: anthropic("claude-3-sonnet-20240229"),
         system: "You are an expert literary translator.",
         prompt: `Improve this translation based on the following feedback:
         ${evaluation.specificIssues.join("\n")}

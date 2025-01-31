@@ -9,5 +9,15 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": ""
+  "description": "",
+  "dependencies": {
+    "wrangler": "^3.107.0"
+  },
+  "pnpm": {
+    "ignoredBuiltDependencies": [
+      "workerd",
+      "esbuild",
+      "sharp"
+    ]
+  }
 }

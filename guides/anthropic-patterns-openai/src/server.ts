@@ -6,12 +6,12 @@ import {
   Connection,
   WSMessage,
 } from "partyserver";
-import { createOpenAI } from "@ai-sdk/openai";
+import { OpenAI } from 'openai';
+import { StreamingTextResponse } from 'ai-sdk';
 import { generateText, generateObject } from "ai";
 import { z } from "zod";
 
-const openai = createOpenAI({
-  // @ts-ignore we are replacing this at build time
+const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 

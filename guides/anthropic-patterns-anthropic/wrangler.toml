@@ -1,4 +1,4 @@
-name = "anthropic-patterns"
+name = "anthropic-patterns-anthropic"
 main = "src/server.ts"
 compatibility_date = "2025-01-29"
 
